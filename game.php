@@ -19,7 +19,6 @@ $game = new MafiaGame($db);
 
 // Check if the game has started
 if ($game->getStatus() == 'waiting') {
-    // If the game has not started, start it
     $game->startGame();
 }
 
@@ -27,25 +26,24 @@ if ($game->getStatus() == 'waiting') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
 
-    // Handle game actions based on the submitted form data
     switch ($action) {
         case 'vote':
-            // Implement player voting logic
             break;
-        // Add more cases for other actions if needed
     }
 }
 
-// Display game status, player roles, and actions
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <title>Mafia Game</title>
 </head>
+
 <body>
     <h1>Mafia Game</h1>
 
@@ -54,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     <div>
         <h3>Game Status</h3>
         <!-- Display game status, e.g., Waiting, Night, Day, Ended -->
-        <?php echo $game->getStatus(); ?>
+        <div id="game-status"><?php echo $game->getStatus(); ?></div>
     </div>
 
     <div>
@@ -81,5 +79,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     <form action="logout.php" method="post">
         <button type="submit">Logout</button>
     </form>
+
+
+    <script>
+        $(document).ready(function() {
+            function updateGameStatus() {
+                $.ajax({
+                    url: 'get_game_status.php', // This PHP file returns the current game status
+                    type: 'GET',
+                    success: function(response) {
+                        $('#game-status').html(response); // Update the game status on the page
+                    }
+                });
+            }
+
+            // Update game status every 5 seconds
+            setInterval(updateGameStatus, 5000);
+        });
+    </script>
 </body>
+
 </html>
