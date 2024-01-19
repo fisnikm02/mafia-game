@@ -1,5 +1,14 @@
 <?php
 
+session_start();
+
+define('SHOW_ERRORS', true);
+
+if(SHOW_ERRORS) {
+    include 'show_errors.php';
+}
+
+
 class DBInstance {
     private $conn;
 

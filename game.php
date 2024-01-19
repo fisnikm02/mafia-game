@@ -1,11 +1,8 @@
 <?php
-session_start();
-
 // Include necessary files and classes
 include_once 'configs/db.php';
 include_once 'database/player.php';
 include_once 'database/role.php';
-include_once 'database/game.php';
 include_once 'game_logic.php';
 
 /// Check if the user is logged in
@@ -58,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     <div>
         <h3>Your Role</h3>
         <!-- Display the player's role -->
-        <?php echo $game->getPlayerRole($_SESSION['user_id']); ?>
+        <?php echo $_SESSION['user_role'] ?>
     </div>
 
     <div>

@@ -1,6 +1,4 @@
 <?php
-session_start();
-
 // Include necessary files and classes
 include_once 'configs/db.php';
 
@@ -15,6 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_email'], $_POST
     if ($user && password_verify($password, $user['password'])) {
         // Set session variables
         $_SESSION['user_id'] = $user['id'];
+        $role = $db->query("SELECT `name` from roles WHERE id = '". $user['role_id']."'")->fetch_assoc();
+
+        $_SESSION['user_role'] = $role['name'];
         $_SESSION['email'] = $user['email'];
 
         // Redirect to game.php after successful login
@@ -26,25 +27,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_email'], $_POST
 }
 
 // Registration logic
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_email'], $_POST['register_password'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST'
+&& isset($_POST['register_name'], $_POST['register_email'], $_POST['register_password'], $_POST['register_password_confirmation'])) {
+    $name = $_POST['register_name'];
     $email = $_POST['register_email'];
-    $password = password_hash($_POST['register_password'], PASSWORD_DEFAULT);
+    $password = $_POST['register_password'];
+    $password_confirmation = $_POST['register_password_confirmation'];
 
-    // Insert new user into the database
-    $result = $db->query("INSERT INTO players (email, password) VALUES ('$email', '$password')");
-
-    if ($result) {
-        // Automatically log in the new user
-        $user = $db->query("SELECT * FROM players WHERE email = '$email'");
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['email'] = $user['email'];
-
-        // Redirect to game.php after successful registration
-        header('Location: game.php');
-        exit;
+    if($password != $password_confirmation) {
+        $registerError = "Confirmation Password do not match.";
     } else {
-        $registerError = "Registration failed. Please try again.";
+        $password = password_hash($password, PASSWORD_DEFAULT);
+
+        $user = $db->query("SELECT * FROM players WHERE email = '$email' LIMIT 1")->fetch_assoc();
+        
+        if($user) {
+            $registerError = "User with same email already exists.";
+        } else {
+            // Insert new user into the database
+            $result = $db->query("INSERT INTO players (`name`, `email`, `password`) VALUES ('$name','$email', '$password')");
+        
+            if ($result) {
+                $user = $db->query("SELECT * FROM players WHERE email = '$email' LIMIT 1")->fetch_assoc();
+
+                // Automatically log in the new user
+                $_SESSION['user_id'] = $user['id'];
+                $role = $db->query("SELECT `name` from roles WHERE id = '". $user['role_id']."'")->fetch_assoc();
+                $_SESSION['user_role'] = $role['name'];
+                $_SESSION['email'] = $user['email'];
+
+                // Redirect to game.php after successful registration
+                header('Location: game.php');
+                exit;
+            } else {
+                $registerError = "Registration failed. Please try again.";
+            }
+        }
     }
+
 }
 ?>
 
@@ -92,6 +112,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_email'], $_P
             <form action="" method="post" class="pt-0 p-5">
                 <h2>Register</h2>
                 <div class="form-group">
+                    <label for="register_name">Name:</label>
+                    <input type="text" class="form-control" name="register_name" required>
+                </div>
+                <br>
+                <div class="form-group">
                     <label for="register_email">Email:</label>
                     <input type="text" class="form-control" name="register_email" required>
                 </div>
@@ -99,6 +124,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_email'], $_P
                 <div class="form-group">
                     <label for="register_password">Password:</label>
                     <input type="password" class="form-control" name="register_password" required>
+                </div>
+                <br>
+                <div class="form-group">
+                    <label for="register_password_confirmation">Confirm Password:</label>
+                    <input type="password" class="form-control" name="register_password_confirmation" required>
                 </div>
                 <br>
                 <button type="submit" class="btn btn-primary">Register</button>

@@ -1,4 +1,7 @@
 <?php
+
+include 'database/game.php';
+
 class MafiaGame {
     private $db;
     private $players;
@@ -24,9 +27,30 @@ class MafiaGame {
         $output = '';
 
         // Implement logic to display player actions or game events
-        // Here's a simple example: display a message for each player
         foreach ($this->players as $player) {
-            $output .= "Player {$player->getId()}: {$player->getRole()} - Action: [Your custom action]\n";
+            $role = $this->db->query("SELECT `name` from roles WHERE id = '".$player->getRole()."'")->fetch_assoc();
+
+            $output .= "<b>Player {$player->getId()}:</b> {$role['name']} - ";
+        
+            // Custom actions based on player roles
+            switch ($role['name']) {
+                case 'Mafia':
+                    $output .= "Discuss and vote to eliminate a player during the night.";
+                    break;
+                case 'Detective':
+                    $output .= "Investigate a player's allegiance during the night.";
+                    break;
+                case 'Doctor':
+                    $output .= "Choose a player to save from elimination during the night.";
+                    break;
+                case 'Villagers':
+                    $output .= "Discuss and vote to eliminate a suspect during the day.";
+                    break;
+                default:
+                    $output .= "Unknown role - No specific action defined.";
+            }
+
+            $output .= "<br>";
         }
 
         return $output;
@@ -40,7 +64,6 @@ class MafiaGame {
 
     public function nightPhase() {
         // Implement night phase logic
-        // For simplicity, let's assume Mafia eliminates a random player
         $victimId = $this->getRandomPlayerId();
         $this->eliminatePlayer($victimId);
 
@@ -50,7 +73,6 @@ class MafiaGame {
 
     public function dayPhase() {
         // Implement day phase logic
-        // For simplicity, let's assume players vote to eliminate a random player
         $victimId = $this->getRandomPlayerId();
         $this->eliminatePlayer($victimId);
 
@@ -60,7 +82,6 @@ class MafiaGame {
 
     public function endGame() {
         // Determine game outcome
-        // For simplicity, let's assume Mafia wins if they outnumber villagers
         $mafiaCount = $this->getRoleCount('Mafia');
         $villagerCount = $this->getRoleCount('Villager');
 
@@ -89,15 +110,18 @@ class MafiaGame {
                 if($i >= 4) {
                     $role_id = rand(0, 3);
                 }
-                $player = new Player($i + 1, "Player$i@gmail.com", $roles[$role_id]['id'], true);
+
+                $lastId = $this->db->query("SELECT id FROM players ORDER BY id DESC LIMIT 1")->fetch_assoc();
+
+                $player = new Player($lastId['id'] + 1, "Player$i", "Player$i@gmail.com", $roles[$role_id]['id'], true);
                 $this->players[] = $player;
 
                 $id = $player->getId();
+                $name = $player->getName();
                 $email = $player->getEmail();
                 $role_id = $player->getRole();
 
-                // Save player information to the database (you may need to adjust this)
-                $this->db->query("INSERT INTO players (`email`, `role_id`, `is_alive`) VALUES ('$email', '$role_id', '1')");
+                $this->db->query("INSERT INTO players (`name`, `email`, `role_id`, `is_alive`) VALUES ('$name', '$email', '$role_id', '1')");
             }
         } else {
             return;
@@ -110,7 +134,6 @@ class MafiaGame {
             if ($player->getId() == $playerId) {
                 $player->setAlive(false);
 
-                // Update the database to reflect the player's elimination (you may need to adjust this)
                 $this->db->query("UPDATE players SET alive = 0 WHERE id = $playerId");
                 break;
             }

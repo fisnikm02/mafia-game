@@ -1,12 +1,14 @@
 <?php
 class Player {
-    private $id;
-    private $email;
-    private $role;
-    private $is_alive;
+    public $id;
+    public $name;
+    public $email;
+    public $role;
+    public $is_alive;
 
-    public function __construct($id, $email, $role, $alive) {
+    public function __construct($id, $name, $email, $role, $alive) {
         $this->id = $id;
+        $this->name = $name;
         $this->email = $email;
         $this->role = $role;
         $this->is_alive = $alive;
@@ -14,6 +16,10 @@ class Player {
 
     public function getId() {
         return $this->id;
+    }
+
+    public function getName() {
+        return $this->name;
     }
 
     public function getEmail() {

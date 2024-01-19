@@ -5,8 +5,6 @@ class Role {
     private $name;
 
     public function __construct($id, $name) {
-        // Implement constructor
     }
 
-    // Implement getter methods
 }

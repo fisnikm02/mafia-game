@@ -1,5 +1,4 @@
 <?php
-session_start();
 include_once 'configs/db.php';
 include_once 'game_logic.php';
 
